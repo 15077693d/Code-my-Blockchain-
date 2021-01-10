@@ -1,0 +1,13 @@
+const Blockchain = require('./blockchain.js')
+
+const Tuenmun = new Blockchain()
+Tuenmun.createNewTransaction(100, 'oscar', 'terry')
+const output1 = Tuenmun.proofOfWork(Tuenmun.chain[0]['hash'], Tuenmun.pendingTransactions)
+Tuenmun.createNewBlock(output1['nonce'], Tuenmun.chain[0]['hash'], output1['hash'])
+Tuenmun.createNewTransaction(1200, 'oscar', 'terry')
+Tuenmun.createNewTransaction(1100, 'oscar', 'terry')
+const output2 = Tuenmun.proofOfWork(Tuenmun.chain[1]['hash'], Tuenmun.pendingTransactions)
+Tuenmun.createNewBlock(output2['nonce'], Tuenmun.chain[0]['hash'], output2['hash'])
+console.log(Tuenmun)
+console.log(Tuenmun.chain[1].transactions)
+console.log(Tuenmun.chain[2].transactions)
