@@ -1,8 +1,13 @@
 const sha256 = require('sha256')
+const uuid = require('uuid')
+const currentNodeUrl = process.argv[3]
 function Blockchain() {
     this.chain = []
     this.pendingTransactions = []
-    this.createNewBlock(961213, 'instagram:oscariscoding', 'github:15077693d');
+    this.currentNodeUrl = currentNodeUrl
+    this.networkNodes = []
+    genesisBlock = this.createNewBlock(961213, 'instagram:oscariscoding', 'github:15077693d')
+    this.chain.push(genesisBlock)
 }
 
 Blockchain.prototype.createNewBlock = function (nonce, previousBlockHash, hash) {
@@ -16,7 +21,6 @@ Blockchain.prototype.createNewBlock = function (nonce, previousBlockHash, hash) 
         previousBlockHash: previousBlockHash
     }
     this.pendingTransactions = []
-    this.chain.push(newBlock)
     return newBlock
 }
 
@@ -29,9 +33,14 @@ Blockchain.prototype.createNewTransaction = function (amount, sender, recipient)
         amount: amount,
         sender: sender,
         recipient: recipient,
+        transactionId: uuid.v1().split('-').join('')
     }
-    this.pendingTransactions.push(newTransaction)
-    return this.getLastBlock()['index']
+    return newTransaction
+}
+
+Blockchain.prototype.addTransactionToPendingTransactions = function(transactionObject){
+    this.pendingTransactions.push(transactionObject)
+    return this.getLastBlock().index + 1
 }
 
 Blockchain.prototype.hashBlock = function (previousBlockHash, currentBlockData, nonce) {
@@ -44,7 +53,7 @@ Blockchain.prototype.proofOfWork = function (previousBlockHash, currentBlockData
     while (true) {
         const hash = this.hashBlock(previousBlockHash, currentBlockData, nonce)
         //console.log(`Mining...Hash:${hash} nonce:${nonce}`)
-        if (hash.substr(0, 4) === "0000") {
+        if (hash.substr(0, 5) === "00000") {
             console.log(`Done!Hash:${hash} nonce:${nonce}`)
             return ({ nonce, hash })
         }
