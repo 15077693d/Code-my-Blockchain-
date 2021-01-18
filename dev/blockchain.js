@@ -53,11 +53,46 @@ Blockchain.prototype.proofOfWork = function (previousBlockHash, currentBlockData
     while (true) {
         const hash = this.hashBlock(previousBlockHash, currentBlockData, nonce)
         //console.log(`Mining...Hash:${hash} nonce:${nonce}`)
-        if (hash.substr(0, 5) === "00000") {
+        if (hash.substr(0, 4) === "0000") {
             console.log(`Done!Hash:${hash} nonce:${nonce}`)
             return ({ nonce, hash })
         }
         nonce += 1
     }
 }
+
+Blockchain.prototype.chainIsValid = function(blockchain){
+    let flag = true
+    for (let i=1;i<blockchain.length;i++){
+        const currentBlock = blockchain[i]
+        const prevBlock = blockchain[i-1]
+        console.log(`index: ${i+1}`)
+        console.log(`prevBlock: ${prevBlock.hash}`)
+        console.log(`currentBlock: ${currentBlock.hash}`)
+        // 1. prevBlock's == block's previousBlockHash
+        if (prevBlock.hash!==currentBlock.previousBlockHash){
+            console.log(`Hash not equal!(${i+1}): ${prevBlock.hash} vs ${currentBlock.previousBlockHash}`)
+            flag = false
+        }
+        // 2. hash block again with nonce see is 0000 of not
+        const currentBlockData = {transactions:currentBlock.transactions,index:i+1}
+        const hash = this.hashBlock(prevBlock.hash, currentBlockData, currentBlock.nonce)
+        if (hash.substr(0, 4) !== "0000"){
+            console.log(`No 0000!(${i+1}): ${prevBlock.hash} vs ${hash}`)
+            flag = false
+        }
+    }
+    // 3. genesis block is correct
+    const genesisBlock = blockchain[0]
+    const correctNonce = genesisBlock.nonce===961213
+    const correctPreviousBlockHash = genesisBlock.previousBlockHash ==='instagram:oscariscoding'
+    const correctHash = genesisBlock.hash ==='github:15077693d'
+    const correctTransactions = genesisBlock.transactions.length===0
+    if ((correctNonce&&correctPreviousBlockHash&&correctHash&&correctTransactions) === false){
+        console.log(`genesis is wrong!: correctNonce-${correctNonce}  correctPreviousBlockHash-${correctPreviousBlockHash} correctHash-${correctHash} correctTransactions-${correctTransactions}`)
+        flag = false
+    }
+    return flag
+}
+
 module.exports = Blockchain

@@ -182,6 +182,51 @@ app.post('/register-nodes-bulk',function(req, res){
     })
 })
 
+// consensus
+app.get('/consensus', async (req, res) => {
+   const getBlockchainPromises = []
+   atrium.networkNodes.forEach(
+    networkNode => {
+        const option = {
+            uri:`${networkNode}/blockchain`,
+            method:"GET",
+            json:true
+        }
+        getBlockchainPromises.push(
+            rp(option)
+        )
+    }
+   )
+   const nodes = await Promise.all(getBlockchainPromises)
+   let maxLength = atrium.chain.length
+   let longestChain = null
+   let newPendingTansaction = null
+   nodes.forEach(
+    node => {
+        // longer than maxLength
+        if (node.chain.length>maxLength){
+            // chain is valid
+            if(atrium.chainIsValid(node.chain)){
+                longestChain = node.chain
+                newPendingTansaction = node.pendingTransactions
+            }
+        }
+    }
+   )
+   if (longestChain){
+        atrium.chain = longestChain
+        atrium.pendingTransactions = newPendingTansaction
+        res.json({
+            note:'Replace the chain...',
+            url:atrium.currentNodeUrl,
+        })
+   }
+   res.json({
+    note:'No replace in the chain...',
+    url:atrium.currentNodeUrl,
+})
+})
+
 app.listen(Number(port), () => {
     console.log(`listening on port ${port}...`)
 })
